@@ -1,0 +1,170 @@
+---
+title: "hw-00: Meet the Toolkit"
+author: "Mohammad Rahat Helal"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+library(tidyverse) 
+library(scico) # for color palette 
+library(DT) # for interactive table 
+```
+
+```{r, echo=FALSE, out.width="100%", fig.align = 'center'}
+knitr::include_graphics("images/rstudio.png")
+```
+
+```{r, echo=FALSE, out.width="100%", fig.align = 'center'}
+knitr::include_graphics("images/quarto.png")
+```
+
+```{r}
+# install the package
+# only needs to be done once on your machine
+# better put all the installation stuff in the setup chunk
+# install.packages("readr")
+
+# load the package
+# needs to be done every time you come back to working on the project
+library(readr)
+
+un_votes <- read_csv("data/un_votes.csv")
+```
+
+```{r}
+nrow(un_votes) # number of rows
+ncol(un_votes) # number of columns
+dim(un_votes) # rows columns together (Roller Coaster)
+colnames(un_votes)
+```
+
+```{r}
+# -- [MRH] Provide the total number of fields in the file/dataset 
+length(colnames(un_votes))
+```
+
+```{r}
+colnames(un_votes) |> 
+  length() # return the length of this vector
+
+un_votes |> 
+  colnames() |> # get column names vector
+  length() # return the length of this vector
+```
+
+```{r}
+head(un_votes)
+tail(un_votes, n = 10)
+```
+
+```{r}
+summary(un_votes)
+```
+
+```{r}
+glimpse(un_votes)
+```
+
+```{r}
+un_votes$issue |>
+  unique()
+```
+
+```{r}
+# [MRH] count the number of unique issue areas
+un_votes$issue |>
+  unique() |> 
+  length()
+```
+
+```{r}
+ggplot(data = un_votes, mapping = aes(x = percent_yes)) +
+  geom_histogram()
+```
+
+```{r}
+# Error in code if "+" is omitted and pipe is used instead
+# ggplot(data = un_votes, mapping = aes(x = percent_yes)) %>% 
+  # geom_histogram()
+```
+
+```{r}
+# pipe the plot function to dataset as below
+un_votes |>
+  ggplot(mapping = aes(x = percent_yes)) +
+  geom_histogram() 
+```
+
+```{r}
+country_list <- c("United States", "China", "Mexico", "Turkey")
+```
+
+```{r}
+un_votes |> # take the dataset
+  filter(
+    country %in% country_list, # select rows for countries in from country_list
+    issue %in% c("Human rights") # select cases for human rights votes
+  ) |>
+  ggplot(mapping = aes(x = year, y = percent_yes, color = country)) +
+  geom_line() +
+  ylab("% of votes that are 'Yes'") +
+  scale_color_scico_d(palette = "berlin") + # adjust color
+  theme_minimal() + # change the appearance
+  theme(legend.position = "top") # change legend position
+```
+
+```{r}
+un_votes |> # take the dataset
+  filter(
+    country %in% c("Italy", "France"), # select the countries to work with
+    votes > 5 # only use records where there are more than 5 votes
+  ) |>
+  ggplot(mapping = aes(
+    x = year, # over horizontal axis
+    y = percent_yes, # over vertical axis
+    color = country
+  )) +
+  geom_point() + # add points
+  geom_smooth(method = "loess", se = FALSE) + # add trend line
+  facet_wrap(~issue) + # split by issue
+  labs(
+    title = "Share of 'Yes' votes in the UN General Assembly",
+    subtitle = "1946 to 2019",
+    y = "% Yes Votes",
+    x = "Year",
+    color = "Country"
+  ) +
+  scale_color_scico_d(palette = "berlin") + # adjust color
+  theme_minimal() + # change the appearance
+  theme(legend.position = "top") # change legend position
+```
+
+```{r, eval=knitr::is_html_output()}
+un_votes |>
+  arrange(country) |>
+  select(country) |>
+  distinct() |>
+  datatable()
+```
